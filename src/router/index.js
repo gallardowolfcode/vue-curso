@@ -1,7 +1,10 @@
 import Vue from 'vue'
+import Router from 'vue-router'
 import VueRouter from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
+import { getToken } from '@/utils/cookies'
+import store from '@/store'
 
 Vue.use(VueRouter)
 
@@ -12,6 +15,9 @@ const routes = [
     component: HomeView
   },
   {
+    meta: {
+      isPublic: true
+    },
     path: '/login',
     name: 'login',
     component: LoginView
@@ -26,8 +32,40 @@ const routes = [
   }
 ]
 
-const router = new VueRouter({
+const router = new Router({
   routes
+})
+
+router.beforeEach(async (to, from, next) => {
+  // determine whether the user has logged in
+  const token = getToken()
+
+  if (token) {
+    if (to.path === '/login' || to.path === '/register') {
+      // if is logged in, redirect to the home page
+      next({ path: '/' })
+    } else {
+      try {
+        // get user info
+        await store.dispatch('getUser')
+        next()
+      } catch (error) {
+        console.log(error)
+        // remove token and go to login page to re-login
+        await store.dispatch('logout')
+        next(`/login?redirect=${to.path}`)
+      }
+    }
+  } else {
+    /* has no token */
+    if (to.meta.isPublic) {
+      // in the free login whitelist, go directly
+      next()
+    } else {
+      // other pages that do not have permission to access are redirected to the login page.
+      next(`/login?redirect=${to.path}`)
+    }
+  }
 })
 
 export default router

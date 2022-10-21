@@ -11,47 +11,56 @@
               <img src="https://via.placeholder.com/150" />
             </figure>
             <form>
-              <div class="field">
-                <div class="control">
-                  <input
-                    class="input is-large"
-                    type="email"
-                    placeholder="Your Email"
-                    autofocus=""
-                  />
-                </div>
-              </div>
+              <b-field>
+                <b-input v-model="user.username" placeholder="Nombre de usuario"></b-input>
+              </b-field>
 
-              <div class="field">
-                <div class="control">
-                  <input
-                    class="input is-large"
-                    type="password"
-                    placeholder="Your Password"
-                  />
-                </div>
-              </div>
-              <div class="field">
-                <label class="checkbox">
-                  <input type="checkbox" />
-                  Remember me
-                </label>
-              </div>
-              <button class="button is-block is-info is-large is-fullwidth">
-                Login <i class="fa fa-sign-in" aria-hidden="true"></i>
-              </button>
+              <b-field>
+                <b-input
+                  v-model="user.password"
+                  placeholder="Contraseña"
+                ></b-input>
+              </b-field>
+              <b-button @click="submit" type="is-info" expanded
+                >Click Me</b-button
+              >
             </form>
           </div>
-          <p class="has-text-grey">
-            <a href="../">Sign Up</a> &nbsp;·&nbsp;
-            <a href="../">Forgot Password</a> &nbsp;·&nbsp;
-            <a href="../">Need Help?</a>
-          </p>
         </div>
       </div>
     </div>
   </section>
 </template>
+
+<script>
+import redirect from '@/mixins/redirect'
+
+export default {
+  mixins: [redirect],
+  data () {
+    return {
+      user: {
+        username: '',
+        password: ''
+      }
+    }
+  },
+  methods: {
+    async submit () {
+      console.log(this.user)
+      const data = await this.$store.dispatch('login', this.user)
+      console.log(data)
+      console.log(this.$store.state.isLogued)
+      if (this.$store.state.isLogued) {
+        this.$router.push({
+          path: this.redirect || '/',
+          query: this.otherQuery
+        })
+      }
+    }
+  }
+}
+</script>
 
 <style scoped>
 .hero.is-success {
